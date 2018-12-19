@@ -162,11 +162,11 @@ int main(int argc, char const *argv[])
     memset(b,-1,sizeof(b));
     memset(c,-1,sizeof(c));
     //input
-    cin>>n>>k;
+    scanf("%d%d",&n,&k);
     for(int i = 0; i < k; i++)
     {
         int d,x,y;
-        cin>>d>>x>>y;
+        scanf("%d%d%d",&d,&x,&y);
     //solve
         if(!solve(d,x,y))
         {
@@ -175,6 +175,6 @@ int main(int argc, char const *argv[])
         }
     }
     //ouput
-    cout<<sum;
+    printf("%d\n",sum);
     return 0;
 }
