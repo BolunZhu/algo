@@ -26,18 +26,12 @@
 #include <cstring>
 //
 const int edge_num = 1000 ;
-const int vertex_num=100 ;
+const int vertex_num=25 ;
 int edge_count=0;
-int vertex_count=0;
 int head[vertex_num];
 struct edge
 {
     int s,d,w,next;
-    edge(){}
-    edge(int _s,int _d,int _w,int _next)
-    {
-        s=_s;d=_d;w=_d;next=_next;
-    }
 }E[edge_num];
 //head[i] = index of first edge from vertex i
 //next[j] = index of next edge after edge j
@@ -52,45 +46,49 @@ void add(int i,int j,int w)
     E[edge_count].d=j;
     E[edge_count].w=w;
     E[edge_count].next=head[i];
-    if(head[i]==-1){vertex_count++;}
-    if(head[j]==-1){vertex_count++;}
     head[i]=edge_count;
     edge_count++;
 }
 //list_star end
-// const int vertex_num=100;
 
-int dist[vertex_num+10];
-bool inQue[vertex_num+10];
-int cnt[vertex_num+10];
-std::queue<int> que;
+int dist[vertex_num];
+bool inQue[vertex_num];
+//适用数组实现简单的stack 
+//如果队列是宽度优先搜索 那stack就是深度优先搜索
+int sta[vertex_num];
+int cnt[vertex_num];
+int top;//top of sta
 int spfa(int scr)
 {
+    //init
     memset(dist,0x3f3f3f3f,sizeof(dist));
+    memset(inQue,false,sizeof(inQue));
     memset(cnt,0,sizeof(cnt));
+    top=0;
+    //insert scr
     dist[scr]=0;
-    while(!que.empty()){que.pop();}//clear queue
-    que.push(scr);
-    cnt[scr]++;
+    sta[top]=scr;
+    top++;
     inQue[scr]=true;
-    while(!que.empty())
+    //begin while
+    while(top!=0)
     {
-        int u=que.front();
-        que.pop();
+        int u=sta[top-1];
+        top--;
         for(int i=head[u];i!=-1;i=E[i].next)
         {
-            if(dist[u]+E[i].w<dist[E[i].d])
+            if(dist[u]+E[i].w>dist[E[i].d])
             {//松弛
                 dist[E[i].d]=dist[u]+E[i].w;
                 if(!inQue[E[i].d])//如果不在队列则加入队列
                 { 
-                    if(cnt[E[i].d]>=vertex_count-1)//每个点最多放入队列V-1次
-                    {
-                        return false;
-                    }
                     inQue[E[i].d]=true;
-                    cnt[E[i].d]++;
-                    que.push(E[i].d);
+                    sta[top]=E[i].d;
+                    top++;
+                }
+                if(++cnt[E[i].d]>24)
+                {
+                    return false;
                 }
             }
         }
@@ -99,9 +97,9 @@ int spfa(int scr)
     }
     return true;
 }
-int app[24];// app[i] = the number of apps at time i
+int app[25];// app[i] = the number of apps at time i
 int x[25];// x[i] = the number of apps before time x (x not include)
-int w[24];//input weight
+int w[25];//input weight
 int main()
 {
     bool flag=false; // true: find solution false:no solution
@@ -113,47 +111,49 @@ int main()
         memset(app,0,sizeof(app));
         memset(x,0,sizeof(x));
         memset(w,0,sizeof(w));
-        for(int j=0;j<24;j++)
+        for(int j=1;j<=24;j++)
         {
-            scanf("%d",&w[i]);
+            scanf("%d",&w[j]);
         }
         scanf("%d",&N);
         for(int j=0;j<N;j++)
         {
             int tmp;
             scanf("%d",&tmp);
-            app[tmp]++;
+            app[tmp+1]++;
         }
         for(int ans=0;ans<=N;ans++)
         {
             //init
             init();
             //build graph
-            for(int j=1;j<=N;j++)
+            add(0,24,ans);
+            for(int j=1;j<=24;j++)
             {//x[i]-x[i-1]>=0   == x[i-1]-x[i]<=0
-                add(j,j-1,0);
+                add(j,j-1,-app[j]);
             }
-            for(int j=1;j<=N;j++)
+            for(int j=1;j<=24;j++)
             {//x[i]-x[i-1]<=app[i] 
-                add(j-1,j,app[j]);
+                add(j-1,j,0);
             }
-            for(int j=7;j<N;j++)
+            for(int j=9;j<=24;j++)
             {//x[j+1]-x[j-7]>=w[j]  == x[j-7]-x[j+1]<=w[j]
-                add(j+1,j-7,w[j]);
+                add(j-8,j,w[j]);
             }
-            for(int j=0;j<7;j++)
+            for(int j=1;j<=8;j++)
             {// x[j+1]-x[0] + x[25]-x[j+17] >= w[j] ==  x[j+17] - x[j+1] -x[25] <= -w[j]
-                add(j+17,j+1,ans-w[j]);
+                add(j+16,j,w[j]-ans);
             }
-            add(24,0,-ans);
-            if(spfa(0))
+            
+            if(spfa(0)&&dist[24]==ans)
             {
                 flag=true;
-                for(int aa=0;aa<=24;aa++)
-                {
-                    printf("%d\n",dist[aa]);
-                }
-                printf("%d\n",dist[24]);
+                // for(int aa=0;aa<=24;aa++)
+                // {
+                //     printf("%d\n",dist[aa]);
+                // }
+                // printf("%d\n",dist[24]);
+                printf("%d\n",ans);
                 break;
             }
         }
